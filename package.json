@@ -1,0 +1,12 @@
+{
+  "name": "esgueras4life",
+  "version": "1.0.0",
+  "description": ".GG/ESGUERAS4LIFE Cyberpunk Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
