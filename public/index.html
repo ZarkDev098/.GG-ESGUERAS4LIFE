@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>.GG/ESGUERAS4LIFE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #010004;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            perspective: 1200px;
+        }
+
+        #bgCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            background: radial-gradient(circle at center, rgba(20, 0, 40, 0.2) 0%, rgba(1, 0, 4, 0.96) 100%);
+            box-shadow: inset 0 0 220px rgba(0, 0, 0, 0.98), inset 0 0 140px rgba(0, 0, 0, 0.5);
+        }
+
+        .scene-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3;
+            transform-style: preserve-3d;
+            padding: 0 16px;
+        }
+
+        .gang-text {
+            font-size: clamp(1.6rem, 6.2vw, 5.2rem);
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
+            color: #ffffff;
+            transform-style: preserve-3d;
+            will-change: transform;
+            max-width: 100%;
+            word-break: break-word;
+            animation: floatingText 4s ease-in-out infinite;
+        }
+
+        @keyframes floatingText {
+            0%, 100% { transform: translateY(0px) translateZ(50px); }
+            50% { transform: translateY(-10px) translateZ(85px); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+    <div class="vignette"></div>
+
+    <div class="scene-container">
+        <div class="gang-text" id="gangText">.GG/ESGUERAS4LIFE</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        const textEl = document.getElementById('gangText');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const particles = [];
+        const particleCount = window.innerWidth < 768 ? 60 : 140;
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: (Math.random() - 0.5) * width * 2,
+                y: (Math.random() - 0.5) * height * 2,
+                z: Math.random() * 600,
+                size: Math.random() * 2.2 + 0.8
+            });
+        }
+
+        let gridOffset = 0;
+        let colorHue = 0;
+
+        function renderMasterpiece() {
+            ctx.fillStyle = 'rgba(1, 0, 4, 0.28)';
+            ctx.fillRect(0, 0, width, height);
+
+            const horizonY = height * 0.58;
+
+            colorHue = (colorHue + 0.4) % 360;
+            const primaryColor = `hsl(${colorHue}, 100%, 55%)`;
+            const secondaryColor = `hsl(${(colorHue + 120) % 360}, 100%, 55%)`;
+            const accentColor = `hsl(${(colorHue + 240) % 360}, 100%, 55%)`;
+
+            textEl.style.color = '#ffffff';
+            textEl.style.textShadow = `
+                0 0 12px ${primaryColor},
+                0 0 30px ${primaryColor},
+                0 0 70px ${primaryColor},
+                3px 3px 0px ${secondaryColor},
+                -3px -3px 0px ${accentColor},
+                6px 6px 25px rgba(0, 0, 0, 0.95)
+            `;
+
+            const sunRadius = Math.min(width, height) * 0.28 + Math.sin(colorHue * 0.05) * 6;
+            const sunCenterX = width / 2;
+            const sunCenterY = horizonY - 20;
+
+            const sunGradient = ctx.createRadialGradient(sunCenterX, sunCenterY, 0, sunCenterX, sunCenterY, sunRadius);
+            sunGradient.addColorStop(0, primaryColor);
+            sunGradient.addColorStop(0.5, secondaryColor);
+            sunGradient.addColorStop(1, 'rgba(1, 0, 4, 0)');
+
+            ctx.fillStyle = sunGradient;
+            ctx.beginPath();
+            ctx.arc(sunCenterX, sunCenterY, sunRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.lineWidth = 1.5;
+            gridOffset = (gridOffset + 1.5) % 60;
+
+            for (let x = -width; x < width * 2; x += 80) {
+                const lineGrad = ctx.createLinearGradient(0, horizonY, 0, height);
+                lineGrad.addColorStop(0, primaryColor);
+                lineGrad.addColorStop(1, secondaryColor);
+                
+                ctx.strokeStyle = lineGrad;
+                ctx.globalAlpha = 0.35;
+                ctx.beginPath();
+                ctx.moveTo(width / 2, horizonY);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+
+            for (let y = horizonY; y < height; y += (y - horizonY) * 0.07 + 6) {
+                const alpha = Math.min(1, (y - horizonY) / (height - horizonY));
+                ctx.strokeStyle = accentColor;
+                ctx.globalAlpha = alpha * 0.45;
+                ctx.beginPath();
+                ctx.moveTo(0, y + (gridOffset * 0.25));
+                ctx.lineTo(width, y + (gridOffset * 0.25));
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1.0;
+
+            particles.forEach(p => {
+                p.z -= 1.8;
+                if (p.z <= 0) p.z = 600;
+
+                const k = 300 / p.z;
+                const px = p.x * k + width / 2;
+                const py = p.y * k + height / 2;
+
+                if (px >= 0 && px <= width && py >= 0 && py <= height) {
+                    const pSize = Math.max(0.6, p.size * k);
+                    ctx.fillStyle = primaryColor;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = primaryColor;
+                    ctx.beginPath();
+                    ctx.arc(px, py, pSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            requestAnimationFrame(renderMasterpiece);
+        }
+
+        renderMasterpiece();
+
+        let mouseX = 0;
+        let mouseY = 0;
+        let currentX = 0;
+        let currentY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - width / 2) / (width / 2);
+            mouseY = (e.clientY - height / 2) / (height / 2);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouseX = (e.touches[0].clientX - width / 2) / (width / 2);
+                mouseY = (e.touches[0].clientY - height / 2) / (height / 2);
+            }
+        }, { passive: true });
+
+        window.addEventListener('mouseleave', () => {
+            mouseX = 0;
+            mouseY = 0;
+        });
+
+        window.addEventListener('touchend', () => {
+            mouseX = 0;
+            mouseY = 0;
+        });
+
+        function animateText() {
+            currentX += (mouseX - currentX) * 0.12;
+            currentY += (mouseY - currentY) * 0.12;
+
+            const rotateY = currentX * 22;
+            const rotateX = -currentY * 22;
+
+            textEl.style.transform = `translateZ(60px) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+
+            requestAnimationFrame(animateText);
+        }
+
+        animateText();
+    </script>
+</body>
+</html>
